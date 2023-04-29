@@ -10,8 +10,8 @@ WRITESTR=AELD_IS_FUN
 WRITEDIR=/tmp/aeld-data
 username=$(cat conf/username.txt)
 
-make clean
-make
+#make clean
+#make
 
 if [ $# -lt 3 ]
 then
@@ -64,7 +64,7 @@ OUTPUTSTRING=$(./finder.sh "$WRITEDIR" "$WRITESTR")
 
 # remove temporary directories
 rm -rf /tmp/aeld-data
-make clean
+#make clean
 
 set +e
 echo ${OUTPUTSTRING} | grep "${MATCHSTR}"
