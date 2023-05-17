@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall
+CFLAGS=-Wall -pthread
 
 SRC=aesdsocket.c
 OUTPUT=aesdsocket
@@ -7,7 +7,7 @@ OUTPUT=aesdsocket
 all: clean $(OUTPUT)
 
 aesdsocket: $(SRC)
-	$(CROSS_COMPILE)$(CC) $(CFLAGS) -o $(OUTPUT) $(SRC)
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -o $(OUTPUT) $(SRC) 
 
 clean:
 	rm -f $(OUTPUT)
