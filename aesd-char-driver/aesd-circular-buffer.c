@@ -16,6 +16,8 @@
 
 #include "aesd-circular-buffer.h"
 
+#define indexing(index) (index%AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED)
+
 /**
  * @param buffer the buffer to search for corresponding offset.  Any necessary locking must be performed by caller.
  * @param char_offset the position to search for in the buffer list, describing the zero referenced
@@ -32,7 +34,36 @@ struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct
     /**
     * TODO: implement per description
     */
-    return NULL;
+    if(!(buffer->full))
+    {
+    	uint8_t index;
+    	uint8_t total_size = 0;
+    	for(index = 0; index < buffer->in_offs; index++)
+    	{
+    	    total_size += buffer->entry[index].size;
+    	    if(char_offset < total_size)
+    	    {
+    	    	*entry_offset_byte_rtn = char_offset - (total_size - buffer->entry[index].size);
+    	    	return &(buffer->entry[index]);
+    	    }	
+    	}
+    	return NULL;
+    }
+    else
+    {
+    	uint8_t index;
+    	uint8_t total_size = 0;
+    	for(index = buffer->out_offs; index < (AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED+buffer->in_offs); index++)
+    	{
+    	    total_size += buffer->entry[indexing(index)].size;
+    	    if(char_offset < total_size)
+    	    {
+    	    	*entry_offset_byte_rtn = char_offset - (total_size - buffer->entry[indexing(index)].size);
+    	    	return &(buffer->entry[indexing(index)]);
+    	    }	
+    	}
+    	return NULL;
+    }
 }
 
 /**
@@ -47,6 +78,22 @@ void aesd_circular_buffer_add_entry(struct aesd_circular_buffer *buffer, const s
     /**
     * TODO: implement per description
     */
+    if(buffer->in_offs == (AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED - 1))
+    {
+        memcpy(&(buffer->entry[buffer->in_offs]), add_entry, sizeof(struct aesd_buffer_entry));
+        if(buffer->in_offs == buffer->out_offs)
+        	buffer->out_offs = 0;
+        buffer->in_offs = 0;
+        buffer->full = true;
+    }
+    else if(buffer->full == true)
+    {
+    	if(buffer->in_offs == buffer->out_offs)
+    		buffer->out_offs++;
+    	memcpy(&(buffer->entry[buffer->in_offs++]), add_entry, sizeof(struct aesd_buffer_entry));
+    }
+    else
+        memcpy(&(buffer->entry[buffer->in_offs++]), add_entry, sizeof(struct aesd_buffer_entry));
 }
 
 /**
